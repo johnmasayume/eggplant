@@ -1,0 +1,7 @@
+﻿params shouldPass
+
+if random(1,2) div 2 equals 0 then
+	LogSuccess "This action is passing"
+else 
+	LogError "This action is failing"
+end if
