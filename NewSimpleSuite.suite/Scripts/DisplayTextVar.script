@@ -1,0 +1,4 @@
+﻿To logText text:"default"
+	log "Text is "&text
+	
+End logText

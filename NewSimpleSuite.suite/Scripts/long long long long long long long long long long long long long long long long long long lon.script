@@ -1,0 +1,7 @@
+﻿params msg1, msg2, msg3, msg4, msg5
+
+log msg1
+log msg2
+log msg3
+log msg4
+log msg5

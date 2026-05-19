@@ -1,0 +1,139 @@
+﻿# call the IAM endpoint for the keycloak details that make up the auth url
+//update tested dai environment link here
+Set daiUrl8000 to "https://5cd04151b8.png.is.keysight.com"
+set iamDetails to iam_getDetails(daiUrl: daiUrl8000 by name)
+set keycloak_base_url to iamDetails.keycloak_base_url
+set keycloak_realm to iamDetails.keycloak_realm
+set auth_url to !"[[keycloak_base_url]]realms/[[keycloak_realm]]/protocol/openid-connect/token"
+
+# save the auth token - update the client_id and client_secret
+set token to auth(client_id: "client:dai:api:integration:db832bba-0852-4278-a616-43b9b709d9fc", client_secret: "20ba640b-c66d-4b4a-96a4-378808c7b060", auth_url: auth_url by name)
+
+log token
+
+set requestheaders to {"Accept": "*/*", "Authorization": "Bearer" && token}
+
+//set tclist to getTClist (daiUrl8000, requestheaders: requestheaders by name)
+
+//update model id for the tested environment
+set expmodel to exportmodel (daiUrl8000, "91f013c6-d835-4075-8792-2377f7ec6531", requestheaders: requestheaders by name)
+
+//set exporttclist to exportTClist (daiUrl8000, requestheaders: requestheaders by name)
+
+//set deletem to deletemodel(daiUrl8000, "f60f6204-89d6-4aa5-8f25-a4f05ed34610", token)
+
+//set deletetc to deletetc(daiUrl8000, "d01fad61-e870-48a9-ae24-17bd8fdbc617")
+
+//set cloneTCDAI to cloneTC (daiUrl8000, requestheaders: requestheaders by name)
+
+to auth client_id, client_secret, auth_url
+
+	set headers to {"Content-Type": "application/x-www-form-urlencoded"}
+	//set headers to {"Content-Type": "application/json"}
+	//set payload to {client_id: "client:dai:agent:integration", client_secret: client_secret, grant_type: "client_credentials"}
+	set payload to {client_id: client_id, client_secret: client_secret, grant_type: "client_credentials"}
+
+	post payload to url auth_url with headers headers
+	put it as a property list into response
+	log auth_url
+	return response.access_token
+	
+end auth
+
+to iam_getDetails daiUrl
+	
+	set endpoint to "/composer/api/v1/services/iam/v1.0.0"
+	get url !"[[daiUrl]][[endpoint]]"
+	set iamDetails to it 
+	log it
+	return iamDetails as a property list
+	
+end iam_getDetails
+
+
+to getmodelinfo daiUrl, requestheaders
+
+	set endpoint to "/composer/api/v1/models"
+	get url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	//set modelinfo to it 
+	put it as a property list into response
+	//log response
+	return modelinfo as a property list	
+end getmodelinfo
+
+to getTClist daiUrl, requestheaders
+	set endpoint to "/modeler_service/api/v1/test_cases"
+	get url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	put it  into response
+	log response
+	return tclist as a property list
+end getTClist
+
+to exportmodel daiUrl, modelId, requestheaders
+
+	set myFile to ResourcePath("model_export.json")
+	
+	set endpoint to "/modeler_service/api/v1/models/"&modelId&"/latest_version/export"
+	get url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	put it as property list into response
+	Log it
+	
+	put JSONFormat(response)& return after file myFile
+	
+end exportmodel	
+
+to deletemodel daiUrl, modelId, authToken
+
+	set endpoint to "/ai/models/"&modelId
+	log endpoint
+	
+	put daiUrl&endpoint into apiUrl
+	log apiUrl
+	
+	deleteRequest {url:apiUrl, requestHeaders: {Authorization: "bearer" && authToken}}
+	
+	set response to it as a property list
+	log response
+	
+	return response
+	
+end deletemodel
+
+to deletetc daiUrl, tcId
+
+	set endpoint to "/modeler_service/api/v1/test_cases/"&tcId
+	log endpoint
+	
+	DELETE url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	
+	put it as property list into response
+	Log it
+	
+	return it
+	
+end deletetc
+
+to importmodel daiUrl, requestheaders
+	set endpoint to "/modeler_service/api/v1/models"	
+	set jsonmodelfile to ResourcePath("Model6104_module.json")
+	set jsonmodel  to (file jsonmodelfile)
+	//Set JFformat to JSONFormat(jsonmodel)
+	//Set json to JFformat
+	post jsonmodel to url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	return impmodel
+end importmodel
+
+to exportTClist daiUrl, requestheaders
+
+	set myFile to ResourcePath("testcase_export.csv")
+	
+	set endpoint to "/modeler_service/api/v1/test_cases_export"
+	get url !"[[daiUrl]][[endpoint]]" with headers requestheaders
+	put it into response
+	Log it
+	
+	put response after file myFile
+	
+	return response
+	
+end exportTClist

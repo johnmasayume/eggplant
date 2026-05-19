@@ -1,0 +1,6 @@
+﻿put "Countdown"
+repeat with n=10 down to 1
+	put n
+	wait two second
+end repeat
+put "BOOM!"
