@@ -1,7 +1,7 @@
 ﻿params shouldPass
 
 if random(1,2) div 2 equals 0 then
-	LogSuccess "This action is passing"
+	LogSuccess "This action is passing - from test_git_branching"
 else 
-	LogError "This action is failing"
+	LogError "This action is failing - from test_git_branching"
 end if
